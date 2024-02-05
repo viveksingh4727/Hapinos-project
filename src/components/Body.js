@@ -1,13 +1,14 @@
-import { useEffect, useState } from "react";
-import {RestCard, withPromotedLabel} from "./RestCard";
+import { useContext, useEffect, useState } from "react";
+import { RestCard, withPromotedLabel } from "./RestCard";
 import Shimmer from "./Shimmer";
-import { Link } from "react-router-dom";
+import { Link, UNSAFE_ViewTransitionContext } from "react-router-dom";
+import useOnlineStatus from "../utils/useOnlineStatus";
+import UserContext from "../utils/UserContext";
 
 const Body = () => {
   // Local State Variable - Super powerful variable
   const [listOfRestaurants, setListOfRestaurants] = useState([]);
-  const [filteredRest, setFilteredRest]= useState([]);
-
+  const [filteredRest, setFilteredRest] = useState([]);
 
   const [searchText, setSearchText] = useState("");
 
@@ -32,8 +33,16 @@ const Body = () => {
     setFilteredRest(
       json?.data?.cards[1]?.card?.card?.gridElements?.infoWithStyle?.restaurants
     );
-    
   };
+
+  const onlineStatus = useOnlineStatus();
+
+  if (onlineStatus === false)
+    return (
+      <h1>Looks like you're offline! Please check your internet connection;</h1>
+    );
+
+  const { loggedInUser, setUserName } = useContext(UserContext);
 
   return listOfRestaurants.length === 0 ? (
     <Shimmer />
@@ -58,36 +67,45 @@ const Body = () => {
                 res.info.name.toLowerCase().includes(searchText)
               );
               setFilteredRest(filteredRestaurant);
-              
             }}
           >
             Search
           </button>
         </div>
         <div className="search m-4 p-4 flex items-center">
-        <button
-          className="px-4 py-2 bg-gray-100 m-4 rounded-lg"
-          onClick={() => {
-            const filteredList = listOfRestaurants.filter(
-              (resl) => resl.info.avgRating > 4.4
-            );
-            setFilteredRest(filteredList);
-          }}
-        >
-          Top Rated Restaurants
-        </button>
+          <button
+            className="px-4 py-2 bg-gray-100 m-4 rounded-lg"
+            onClick={() => {
+              const filteredList = listOfRestaurants.filter(
+                (resl) => resl.info.avgRating > 4.4
+              );
+              setFilteredRest(filteredList);
+            }}
+          >
+            Top Rated Restaurants
+          </button>
         </div>
-        
+        <div className="search m-4 p-4 flex items-center">
+          <label> Username : </label>
+          <input
+            className="border border-black p-2"
+            value={loggedInUser}
+            onChange={(e) => setUserName(e.target.value)}
+          />
+        </div>
       </div>
 
       <div className="flex flex-wrap">
         {filteredRest.map((restaurant, index) => (
-         <Link key={restaurant.info.id}
-         to={"restaurants/" + restaurant.info.id}
-         > 
-         
-         {restaurant.info.promoted ? <RestCardPromoted resData={restaurant}/> : <RestCard resData={restaurant} />}
-         
+          <Link
+            key={restaurant.info.id}
+            to={"restaurants/" + restaurant.info.id}
+          >
+            {restaurant.info.promoted ? (
+              <RestCardPromoted resData={restaurant} />
+            ) : (
+              <RestCard resData={restaurant} />
+            )}
           </Link>
         ))}
       </div>
