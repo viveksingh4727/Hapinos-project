@@ -15,7 +15,7 @@ const Body = () => {
   const RestCardPromoted = withPromotedLabel(RestCard);
   // Whenever state vairable update, react triggers reconciliation cycle ( re-renders the component)
 
-  console.log(listOfRestaurants);
+
   useEffect(() => {
     fetchData();
   }, []);
